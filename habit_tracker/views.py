@@ -1,8 +1,8 @@
 import datetime
 from django.shortcuts import get_object_or_404, render, redirect
-from django.contrib.auth.decorators import login_required
-from .forms import HabitForm
-from .models import Habit
+from django.contrib.auth.decorators import login_required, user_passes_test
+from .forms import HabitForm, DailyRecordForm
+from .models import Habit, DailyRecord
 
 
 @login_required
@@ -33,13 +33,28 @@ def habit_detail(request, habit_pk):
     return render(request, "habit_tracker/habit_detail.html", {"habit": habit})
 
 
-def habit_daily_record(request, habit_pk):
+@login_required
+def habit_daily_record(request, habit_pk, record_pk=None):
     habit = get_object_or_404(Habit, pk=habit_pk)
-    record_date = datetime.date.today()
-    daily_record, _ = habit.records.get_or_create(date=record_date)
+    view_context = {"habit": habit}
+    if request.method == "GET":
+        record_date = datetime.date.today()
+        daily_record, _ = habit.records.get_or_create(date=record_date)
+    else:
+        daily_record_instance = DailyRecord.objects.get(pk=record_pk)
+        form = DailyRecordForm(data=request.POST, instance=daily_record_instance)
+        if form.is_valid():
+            daily_record = form.save(commit=False)
+            daily_record.habit = habit
+            daily_record.save()
 
-    return render(
-        request,
-        "habit_tracker/habit_results.html",
-        {"habit": habit, "daily_record": daily_record},
+    if daily_record:
+        date_value_for_form = daily_record.date
+    else:
+        date_value_for_form = datetime.date.today()
+    view_context.update(
+        form=DailyRecordForm(initial={"date": date_value_for_form}),
+        daily_record=daily_record,
     )
+
+    return render(request, "habit_tracker/habit_results.html", view_context)
