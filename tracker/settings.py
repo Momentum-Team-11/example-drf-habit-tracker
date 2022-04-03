@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.github",
     "habit_tracker",
+    "rest_framework",
 ]
 
 # this is here because django.contrib.sites is included for django-allauth
@@ -154,4 +155,11 @@ SOCIALACCOUNT_PROVIDERS = {
             "read:org",
         ],
     }
+}
+
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly"
+    ],
+    "EXCEPTION_HANDLER": "api.utils.custom_exception_handler",
 }

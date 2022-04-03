@@ -13,26 +13,25 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
 from django.urls import path, include
-from habit_tracker import views
+from . import views
 
 urlpatterns = [
-    path("", views.habit_list, name="habit_list"),
-    path("habits/", views.habit_list, name="habit_list"),
-    path("habits/new", views.habit_new, name="habit_new"),
-    path("habits/<int:habit_pk>", views.habit_detail, name="habit_detail"),
+    path("habits/", views.HabitListView.as_view(), name="api_habit_list"),
     path(
-        "habits/<int:habit_pk>/results",
-        views.habit_daily_record,
-        name="habit_daily_record",
+        "habits/<int:pk>",
+        views.HabitDetailView.as_view(),
+        name="api_habit_detail",
     ),
     path(
-        "habits/<int:habit_pk>/results/<int:record_pk>",
-        views.habit_daily_record,
-        name="habit_daily_record_update",
+        "habits/<int:pk>/results",
+        views.DailyRecordCreateView.as_view(),
+        name="api_habit_daily_records",
     ),
-    path("admin/", admin.site.urls),
-    path("auth/", include("allauth.urls")),
-    path("api/", include("api.urls")),
+    path(
+        "results/<int:year>/<int:month>/<int:day>",
+        views.DailyRecordListCreateView.as_view(),
+        name="api_habit_daily_records_by_date",
+    ),
+    path("api-auth/", include("rest_framework.urls")),
 ]
